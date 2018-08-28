@@ -23,6 +23,8 @@ class PodcastsSearchController: UITableViewController,UISearchBarDelegate {
         
         setupSearchBar()
         setupTableView()
+        
+
     }
     //MARK:- UISearchBar
     
@@ -33,13 +35,15 @@ class PodcastsSearchController: UITableViewController,UISearchBarDelegate {
         searchController.dimsBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
     }
+    var timer:Timer?
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        
-        APIService.shared.fetchPodcasts(searchText: searchText) { (podcasts) in
-            self.podcast = podcasts
-            self.tableView.reloadData()
-        }
-        
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (timer) in
+            APIService.shared.fetchPodcasts(searchText: searchText) { (podcasts) in
+                self.podcast = podcasts
+                self.tableView.reloadData()
+            }
+        })
     }
     
     //MARK:- UITableView

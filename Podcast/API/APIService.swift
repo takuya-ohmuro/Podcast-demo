@@ -18,25 +18,25 @@ class APIService {
     func fetchEpisodes(feedUrl:String,completionHandler: @escaping ([Episode]) -> ()) {
         let secreFeedUrl = feedUrl.contains("https") ? feedUrl : feedUrl.replacingOccurrences(of: "http", with: "https")
         guard let url = URL(string: secreFeedUrl) else { return }
-        let parser = FeedParser(URL: url)
-        parser.parseAsync { (result) in
-            print("Successfully parse feed",result.isSuccess)
-            
-            if let err = result.error {
-                print("Faild to parse XML feed:",err)
-                return
-            }
-            guard let feed = result.rssFeed else { return }
-            let episodes = feed.toEpisode()
-            completionHandler(episodes)
-//            self.episodes = feed.toEpisode()
-//            DispatchQueue.main.async {
-//                self.tableView.reloadData()
+        
+        DispatchQueue.global(qos: .background).async {
+            let parser = FeedParser(URL: url)
+            parser.parseAsync { (result) in
+                print("Successfully parse feed",result.isSuccess)
+                
+                if let err = result.error {
+                    print("Faild to parse XML feed:",err)
+                    return
+                }
+                guard let feed = result.rssFeed else { return }
+                let episodes = feed.toEpisode()
+                completionHandler(episodes)
             }
         }
+    }
     
     func fetchPodcasts(searchText:String,completionHandler: @escaping ([Podcast]) -> ()) {
-    
+        
         let parameters = ["term":searchText,"media":"podcast"]
         Alamofire.request(baseiTunesUrl, method: .get, parameters: parameters, encoding: URLEncoding.default, headers: nil).responseData { (dataresponse) in
             if let err = dataresponse.error {
@@ -47,10 +47,10 @@ class APIService {
             do {
                 
                 let searchResults = try JSONDecoder().decode(SearchResults.self, from: data)
-               
+                
                 completionHandler(searchResults.results)
-//                self.podcast = searchResults.results
-//                self.tableView.reloadData()
+                //                self.podcast = searchResults.results
+                //                self.tableView.reloadData()
                 
             } catch let decodeErr {
                 print("Faild to decode:",decodeErr)
